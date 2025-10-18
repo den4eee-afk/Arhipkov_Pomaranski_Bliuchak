@@ -1,192 +1,88 @@
-/* === Global === */
-body {
-  margin: 0;
-  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
-  background: #0d0d0d;
-  color: #f5f5f5;
-  min-height: 100vh;
-  -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
+const gamesData = [
+  { name: "GTA VI", released: "2025-10-15", image: "https://i.imgur.com/zXgW4ZT.jpeg", trailer: "https://www.youtube.com/embed/VQRLujxTm3c" },
+  { name: "The Witcher 4", released: "2026-03-22", image: "https://i.imgur.com/RYyqM3s.jpeg", trailer: "https://www.youtube.com/embed/9dP4bB8F-FM" },
+  { name: "Cyberpunk 2077", released: "2025-12-01", image: "https://i.imgur.com/pAJzHY2.jpeg", trailer: "https://www.youtube.com/embed/cb1H0Fx6sYs" },
+  { name: "Assassin's Creed Infinity", released: "2026-06-10", image: "https://i.imgur.com/6k7bQwP.jpeg", trailer: "https://www.youtube.com/embed/2XbFqdB6p9M" },
+  { name: "Half-Life 3", released: "2027-01-20", image: "https://i.imgur.com/4Z2Qw5T.jpeg", trailer: "https://www.youtube.com/embed/3j8ecF8Wt4E" },
+  { name: "Elden Ring 2", released: "2026-11-05", image: "https://i.imgur.com/8vQw5kT.jpeg", trailer: "https://www.youtube.com/embed/4bF8kQw5T9E" },
+  { name: "Red Dead Redemption 3", released: "2027-09-15", image: "https://i.imgur.com/7kQw5T8.jpeg", trailer: "https://www.youtube.com/embed/5kQw5T8F9E" }
+];
+
+const gamesContainer = document.getElementById("games");
+const searchInput = document.getElementById("search");
+const modal = document.getElementById("modal");
+const modalVideo = document.getElementById("modal-video");
+const modalClose = document.getElementById("modal-close");
+
+function displayGames(games) {
+  gamesContainer.innerHTML = "";
+  games.forEach(game => {
+    const card = document.createElement("div");
+    card.classList.add("game-card");
+    card.innerHTML = `
+      <img src="${game.image}" alt="${game.name}">
+      <h3>${game.name}</h3>
+      <p>Дата релізу: ${game.released}</p>
+      <button class="trailer-btn">Переглянути трейлер</button>
+    `;
+    const trailerBtn = card.querySelector(".trailer-btn");
+    trailerBtn.addEventListener("click", () => {
+      let url = game.trailer;
+      if (url && url.includes("youtube.com")) {
+        url += (url.includes("?") ? "&" : "?") + "autoplay=1";
+      }
+      modalVideo.src = url || "";
+      modal.classList.add("show");
+      modal.style.display = "flex";
+    });
+    gamesContainer.appendChild(card);
+  });
 }
 
-/* === Header === */
-header {
-  text-align: center;
-  padding: 2.5rem 1rem 1.5rem;
-  background: #111;
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.6);
-}
+modalClose.addEventListener("click", () => {
+  modal.classList.remove("show");
+  setTimeout(() => {
+    modal.style.display = "none";
+    modalVideo.src = "";
+  }, 300);
+});
 
-h1 {
-  font-size: 2.8rem;
-  font-weight: 700;
-  letter-spacing: 1.5px;
-  margin: 0;
-  color: #ff00ff;
-  background: linear-gradient(90deg, #ff00ff, #ffff);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
+window.addEventListener("click", e => {
+  if (e.target === modal) {
+    modal.classList.remove("show");
+    setTimeout(() => {
+      modal.style.display = "none";
+      modalVideo.src = "";
+    }, 300);
+  }
+});
 
-#search {
-  margin-top: 1.5rem;
-  padding: 0.9rem 1.3rem;
-  border-radius: 14px;
-  border: 1px solid #ff00ff;
-  width: 320px;
-  max-width: 90%;
-  font-size: 1rem;
-  background: #1a1a1a;
-  color: #fff;
-  box-shadow: 0 4px 20px rgba(255, 152, 0, 0.05);
-  transition: 0.25s ease;
-}
-#search:focus {
-  border-color: #ff00ff;
-  box-shadow: 0 0 0 3px rgba(255, 152, 0, 0.25);
-  outline: none;
-}
+displayGames(gamesData);
 
-/* === Layout === */
-main {
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  min-height: 70vh;
-  padding: 3rem 1rem;
-}
+searchInput.addEventListener("input", () => {
+  const val = searchInput.value.toLowerCase();
+  const filtered = gamesData.filter(g => g.name.toLowerCase().includes(val));
+  displayGames(filtered);
+});
 
-.games-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 2rem;
-  width: 100%;
-  max-width: 1300px;
-}
+// === Ефект: div слідує за курсором ===
+const follower = document.createElement("div");
+follower.id = "follower";
+document.body.appendChild(follower);
 
-/* === Game Card === */
-.game-card {
-  background: #151515;
-  border-radius: 20px;
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.55);
-  padding: 1.4rem 1rem 1.6rem;
-  text-align: center;
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
-  overflow: hidden;
-  border: 1px solid #222;
-}
-.game-card:hover {
-  transform: translateY(-8px) scale(1.03);
-  box-shadow: 0 12px 40px rgba(255, 152, 0, 0.15);
-}
+let mouseX = 0, mouseY = 0;
+let currentX = 0, currentY = 0;
 
-.game-card img {
-  width: 100%;
-  height: 170px;
-  object-fit: cover;
-  border-radius: 14px;
-  margin-bottom: 1rem;
-}
+document.addEventListener("mousemove", e => {
+  mouseX = e.clientX;
+  mouseY = e.clientY;
+});
 
-.game-card h3 {
-  margin: 0.5rem 0 0.3rem;
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #ff00ff;
-  letter-spacing: 0.5px;
+function animateFollower() {
+  currentX += (mouseX - currentX) * 0.15;
+  currentY += (mouseY - currentY) * 0.15;
+  follower.style.left = currentX + "px";
+  follower.style.top = currentY + "px";
+  requestAnimationFrame(animateFollower);
 }
-
-.game-card p {
-  margin: 0.2rem 0 0.7rem;
-  color: #cfcfcf;
-  font-size: 0.95rem;
-  line-height: 1.4;
-}
-
-/* === Button === */
-.trailer-btn {
-  margin-top: 0.8rem;
-  padding: 0.75rem 1.4rem;
-  background: linear-gradient(90deg, #ff00ff, #ffff);
-  color: #111;
-  border: none;
-  border-radius: 12px;
-  cursor: pointer;
-  font-size: 1rem;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  box-shadow: 0 4px 16px rgba(255, 152, 0, 0.2);
-  transition: all 0.25s ease;
-}
-.trailer-btn:hover {
-  background: linear-gradient(90deg, #ffff, #ff00ff);
-  color: #fff;
-  box-shadow: 0 6px 20px rgba(255, 153, 0, 0.35);
-}
-
-/* === Footer === */
-footer {
-  text-align: center;
-  padding: 1.5rem;
-  background: #111;
-  color: #777;
-  font-size: 0.95rem;
-  letter-spacing: 0.5px;
-  border-top: 1px solid #222;
-}
-
-/* === Modal === */
-.modal {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.9);
-  justify-content: center;
-  align-items: center;
-  transition: opacity 0.3s ease;
-  z-index: 1000;
-}
-.modal.show {
-  display: flex;
-  opacity: 1;
-}
-.modal-content {
-  background: #151515;
-  padding: 1.5rem;
-  border-radius: 18px;
-  position: relative;
-  max-width: 700px;
-  width: 92vw;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.8);
-}
-#modal-video {
-  width: 100%;
-  aspect-ratio: 16/9;
-  border-radius: 12px;
-  background: #000;
-}
-.modal-close {
-  position: absolute;
-  top: 12px; right: 18px;
-  font-size: 2rem;
-  color: #ff00ff;
-  cursor: pointer;
-  transition: color 0.25s ease;
-}
-.modal-close:hover {
-  color: #fff;
-}
-
-/* === Follower (ефект курсора) === */
-#follower {
-  position: fixed;
-  width: 30px;
-  height: 30px;
-  background: radial-gradient(circle, #ff00ff 0%, transparent 70%);
-  pointer-events: none;
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  mix-blend-mode: screen;
-  z-index: 9999;
-  transition: 0.05s linear;
-}
+animateFollower();
